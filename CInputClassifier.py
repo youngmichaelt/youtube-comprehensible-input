@@ -15,10 +15,10 @@ for file in os.listdir("/Users/mac/Desktop/repos/youtube-comprehensible-input/yo
 def loop(file):
 
     #Open word list
-    vocabDF = pd.read_excel('WordList.xlsx')
+    vocabDF = pd.read_excel("/Users/mac/Desktop/repos/youtube-comprehensible-input/youtube-comprehensible-input/WordList.xlsx")
 
     #Open video list
-    wordDF = pd.read_excel(file)
+    wordDF = pd.read_excel("/Users/mac/Desktop/repos/youtube-comprehensible-input/youtube-comprehensible-input/"+file)
 
     #Set distinct and normal word count variables
     beginner_words_distinct = 0
@@ -40,8 +40,10 @@ def loop(file):
         v = v.replace('!', '')
         v = v.replace(' ', '')
 
-        if v not in vocab_arr_distinct:
-            vocab_arr_distinct.append(v.lower())
+        #Check if string is not a number/special characters
+        if (v.isalpha() == True):
+            if v not in vocab_arr_distinct:
+                vocab_arr_distinct.append(v.lower())
 
     #loop through video words, add distinct words to array
     for w in wordDF['Words']:
@@ -50,9 +52,10 @@ def loop(file):
         w = w.replace('!', '')
         w = w.replace('.', '')
         w = w.replace(' ', '')
-
-        if w not in word_arr_distinct:
-            word_arr_distinct.append(w.lower())
+        #Check if string is not a number/special characters
+        if (w.isalpha() == True):
+            if w not in word_arr_distinct:
+                word_arr_distinct.append(w.lower())
     counter = 0
 
     #loop and if video word in vocab, add 1 to beginner words
@@ -61,10 +64,24 @@ def loop(file):
             beginner_words_distinct += 1
         
     for v in vocabDF['Beginner']:
-        vocab_arr.append(v)
+        v = v.replace(',', '')
+        v = v.replace('¡', '')
+        v = v.replace('.', '')
+        v = v.replace('!', '')
+        v = v.replace(' ', '')
+        #Check if string is not a number/special characters
+        if (v.isalpha() == True):
+            vocab_arr.append(v)
 
     for w in wordDF['Words']:
-        word_arr.append(w)
+        w = w.replace(',', '')
+        w = w.replace('¡', '')
+        w = w.replace('!', '')
+        w = w.replace('.', '')
+        w = w.replace(' ', '')
+        #Check if string is not a number/special characters
+        if (w.isalpha() == True):
+            word_arr.append(w)
 
     ##preprocesss
         #make all lower case
@@ -84,14 +101,15 @@ def loop(file):
         word = word.replace('¡', '')
         word = word.replace('!', '')
         word = word.replace(' ', '')
-        
-        if counter < 12:
-            sentence = sentence +  word + ' '
-        else:
-            counter = 0
-            sentences_arr.append(sentence)
-            sentence = ''
-        counter += 1
+        #Check if string is not a number/special characters
+        if (word.isalpha() == True):
+            if counter < 12:
+                sentence = sentence +  word + ' '
+            else:
+                counter = 0
+                sentences_arr.append(sentence)
+                sentence = ''
+            counter += 1
 
 
     hard_sentences = 0
@@ -132,11 +150,15 @@ def loop(file):
 
 
 
-
+    hard_words = []
 
     for word in word_arr:
+        word = word.replace(' ', '')
         if word in vocab_arr:
             beginner_words += 1
+        else:
+            hard_words.append(word)
+        
         
 
 ##    print('Distinct vocab words in video:')
@@ -191,10 +213,36 @@ def loop(file):
     print('Score')
     print(score)
 
-    return score
+    if (score > 140) and (score<180):
+        level = 'Advanced'
+    elif(score>180):
+        level = 'Very Advanced'
+    elif (score<140) and (score>100):
+        level = 'Upper intermediate'
+    elif (score > 80) and (score<100):
+        level = 'Upper Beginner'
+    elif (score < 80) and (score>40):
+        level = 'Beginner'
+    elif(score<40):
+        level = 'Super Beginner'
+    elif (score>60) and (score<100):
+        level = 'Intermediate'
+
+    return_arr = [score, level,file, wordDF['URL'][0],wordDF['Channel'][0], vocab_percent,distinct_vocab_percent,wpm,hard_sentences_percent,word_arr, hard_words,wordDF['Title'][0]]
+    
+
+
+    return return_arr
 
 
 scores = []
+
+##Remove word list .xlsx from list
+if 'WordList.xlsx' in files: files.remove('WordList.xlsx')
+if '~$WordList.xlsx' in files: files.remove('~$WordList.xlsx')
+
+tot_results = []
+
 
 for file in files:
 
@@ -203,10 +251,12 @@ for file in files:
     elif file == '~$WordList.xlsx':
         continue
     else:
-        score = loop(file)
-        scores.append(score)
+        return_arr = loop(file)
+        scores.append(return_arr[1])
+        tot_results.append(return_arr)
 
 results = []
+
 
 counter = 0
 for file in files:
@@ -223,17 +273,31 @@ for file in files:
 
     counter += 1
 results.sort()
-data = {'Video Title':[], 'Score': [], 'Level', 'URL', 'Words'}
+data = {'Score': [],'Level': [],'Video Title':[], 'File':[], 'URL': [], 'Channel': [],'Beginner Vocab %':[],
+'Distinct Beginner Vocab %':[],'WPM':[],'Hard Sentences %':[],'Words': [], 'Hard Words': []}
 
-for x in results:
+for x in tot_results:
     print('\n')
-    data['Video Title'].append(x[1])
+    data['Video Title'].append(x[11])
     data['Score'].append(x[0])
+    data['Level'].append(x[1])
+    data['URL'].append(x[3])
+    data['Channel'].append(x[4])
+    data['Words'].append(x[9])
+    data['Hard Words'].append(x[10])
+    data['File'].append(x[2])
+    data['Beginner Vocab %'].append(x[5])
+    data['Distinct Beginner Vocab %'].append(x[6])
+    data['WPM'].append(x[7])
+    data['Hard Sentences %'].append(x[8])
 
-    print(x)
 
-df = pd.DataFrame(data, columns=['Video Title', 'Score'])
-df.to_excel('table.xlsx', index = False, header = True)
+
+    ##print(x)
+
+df = pd.DataFrame(data, columns=['Level','Score','Video Title','Channel','URL', 'Beginner Vocab %',
+'Distinct Beginner Vocab %','WPM', 'Hard Sentences %','Words', 'Hard Words'])
+df.to_excel("/Users/mac/Desktop/repos/youtube-comprehensible-input/table.xlsx", index = False, header = True)
 
 
 
