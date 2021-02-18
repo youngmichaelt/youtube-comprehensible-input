@@ -13,9 +13,9 @@ for file in os.listdir("/Users/mac/Desktop/repos/youtube-comprehensible-input/yo
         files.append(file)
 
 def loop(file):
-
+    print(file)
     #Open word list
-    vocabDF = pd.read_excel("/Users/mac/Desktop/repos/youtube-comprehensible-input/youtube-comprehensible-input/WordList.xlsx")
+    vocabDF = pd.read_excel("/Users/mac/Desktop/repos/youtube-comprehensible-input/youtube-comprehensible-input/backup/WordList.xlsx")
 
     #Open video list
     wordDF = pd.read_excel("/Users/mac/Desktop/repos/youtube-comprehensible-input/youtube-comprehensible-input/"+file)
@@ -47,6 +47,7 @@ def loop(file):
 
     #loop through video words, add distinct words to array
     for w in wordDF['Words']:
+        w = str(w)
         w = w.replace(',', '')
         w = w.replace('¡', '')
         w = w.replace('!', '')
@@ -74,6 +75,8 @@ def loop(file):
             vocab_arr.append(v)
 
     for w in wordDF['Words']:
+        w = str(w)
+
         w = w.replace(',', '')
         w = w.replace('¡', '')
         w = w.replace('!', '')
@@ -213,11 +216,11 @@ def loop(file):
     print('Score')
     print(score)
 
-    if (score > 140) and (score<180):
+    if (score > 150) and (score<180):
         level = 'Advanced'
     elif(score>180):
         level = 'Very Advanced'
-    elif (score<140) and (score>100):
+    elif (score<150) and (score>120):
         level = 'Upper intermediate'
     elif (score > 80) and (score<100):
         level = 'Upper Beginner'
@@ -225,7 +228,7 @@ def loop(file):
         level = 'Beginner'
     elif(score<40):
         level = 'Super Beginner'
-    elif (score>60) and (score<100):
+    elif (score>100) and (score<120):
         level = 'Intermediate'
 
     return_arr = [score, level,file, wordDF['URL'][0],wordDF['Channel'][0], vocab_percent,distinct_vocab_percent,wpm,hard_sentences_percent,word_arr, hard_words,wordDF['Title'][0]]
@@ -273,7 +276,7 @@ for file in files:
 
     counter += 1
 results.sort()
-data = {'Score': [],'Level': [],'Video Title':[], 'File':[], 'URL': [], 'Channel': [],'Beginner Vocab %':[],
+data = {'Video Title':[],'Score': [],'Level': [], 'File':[], 'URL': [], 'Channel': [],'Beginner Vocab %':[],
 'Distinct Beginner Vocab %':[],'WPM':[],'Hard Sentences %':[],'Words': [], 'Hard Words': []}
 
 for x in tot_results:
@@ -295,9 +298,9 @@ for x in tot_results:
 
     ##print(x)
 
-df = pd.DataFrame(data, columns=['Level','Score','Video Title','Channel','URL', 'Beginner Vocab %',
+df = pd.DataFrame(data, columns=['Video Title','Level','Score','Channel','URL', 'Beginner Vocab %',
 'Distinct Beginner Vocab %','WPM', 'Hard Sentences %','Words', 'Hard Words'])
-df.to_excel("/Users/mac/Desktop/repos/youtube-comprehensible-input/table.xlsx", index = False, header = True)
+df.to_excel("/Users/mac/Desktop/repos/youtube-comprehensible-input/sfs.xlsx", index = False, header = True)
 
 
 

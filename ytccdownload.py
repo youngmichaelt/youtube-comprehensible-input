@@ -3,6 +3,7 @@ import xlsxwriter
 import xlrd
 import pandas as pd
 import time
+import random
 
 video_code = 'j6FNRpraWwM'
 ##video_arr = [['j6FNRpraWwM', 'The Plateau Is a Myth - Intermediate Spanish - Language Learning #12','DreamingSpanish'],
@@ -10,25 +11,58 @@ video_code = 'j6FNRpraWwM'
 video_arr = []
 path = '/Users/mac/Desktop/repos/youtube-comprehensible-input/youtube-comprehensible-input/'
 
-f = open (path+'videos-adv.txt', 'r')
-for x in f:
-    video_arr.append(x.split(','))
+f = open (path+'final.txt', 'r')
+
+new = ''
+
+t = pd.read_csv(path+'new.csv')
+print(t)
+counter = 0
+
+while counter <len(t):
+    video_arr.append([t['link'][counter],t['title'][counter],t['channel'][counter]])
+    counter += 1
+
+
+
+
 
 def download_captions(code, title, channel):
 
-    ##Get SRT Captions
-    srt = YouTubeTranscriptApi.get_transcript(code, languages=['es'])
-    ##print(srt[0])
-    ##print(srt[1])
+    #preprocess 
+    code = code.split("v=")[1]
+    code = code.strip('\"')
+    code = code.replace('"', '')
+    code = code.replace('"', '')
 
+
+    title = title.strip('\"')
+    title = title.replace('"','')
+    title = title.replace('"','')
+
+
+    channel = channel.strip('\"')
+    channel = channel.replace('"', '')
+    channel = channel.replace('"', '')
+
+
+    print(code, title, channel)
+
+    if code == 'mGgnhpZ8d5g':
+        srt = YouTubeTranscriptApi.get_transcript(code, languages=['es-419'])
+    else:
+    ##Get SRT Captions
+        srt = YouTubeTranscriptApi.get_transcript(code, languages=['es'])
+    
     sentences = []
     ytWords = []
 
     time = 0
+    duration=0
     counter = 1
     ##calculate time of video
     for x in srt:
-        time += x['duration']
+        duration += x['duration']
         
         if counter == len(srt):
             time = x['start']/60
@@ -37,6 +71,8 @@ def download_captions(code, title, channel):
         
         
     print("Duration")
+    print(duration/60)
+    print("Time")
     print(time)
     ##for each caption in srt add to sentences array
     for x in srt:
@@ -48,7 +84,7 @@ def download_captions(code, title, channel):
         for x in sentence.split():
             ytWords.append(x)
 
-    print(ytWords)
+    #print(ytWords)
 
     # Create a test workbook and add a worksheet.
     workbook = xlsxwriter.Workbook(path+code+'.xlsx')
@@ -64,7 +100,7 @@ def download_captions(code, title, channel):
     worksheet.write(0,1, 'Time')
     worksheet.write(1,1, time)
     worksheet.write(0,2, 'URL')
-    worksheet.write(1,2, 'www.youtube.com/watch?v='+video_code)
+    worksheet.write(1,2, 'www.youtube.com/watch?v='+code)
     worksheet.write(0,3, 'Channel')
     worksheet.write(1,3, channel)
     worksheet.write(0,4, 'Title')
@@ -79,7 +115,6 @@ def download_captions(code, title, channel):
     ##    print(x['text'])
 
     #Open word list
-    wordDF = pd.read_excel(path+'WordList.xlsx')
     ##print(wordDF['Beginner'][0])
 
     ##data = {'test': ['hi', 'e'], 'test': ['hi', 'e']}
@@ -89,5 +124,10 @@ def download_captions(code, title, channel):
     ##df.to_excel('t.xlsx', index = False, header=True)
 
 for x in video_arr:
-    download_captions(x[0], x[1], x[2])
-    time.sleep(5)
+
+    try:
+        download_captions(x[0], x[1], x[2])
+        time.sleep(random.randint(4,10))
+    except:
+        print('Error occured')
+        print(x)
